@@ -1,6 +1,6 @@
 # AI Engg Quick Memory
 
-A repository-backed memory and knowledge-consolidation system for the **AI Engg Quick** learning project.
+A GitHub-backed memory and knowledge-maintenance system for the **AI Engg Quick** learning project.
 
 The project turns new chat summaries into two durable, canonical documents: one describing how the AI assistant should respond and teach, and another preserving the concepts, corrections, decisions, examples, open questions, confidence levels, and learning priorities developed over time.
 
