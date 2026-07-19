@@ -22,6 +22,12 @@ The current goals are to:
 - build no-code and low-code agent workflows, especially for accounting and Google Sheets;
 - maintain useful notes, quizzes, reviews, and an evolving project knowledge base.
 
+### Stable Teaching Preference
+
+- Use software-engineering and industry-level examples by default in this project.
+- Avoid accounting examples unless the user explicitly requests them.
+- If a software-engineering example is still difficult to understand, switch to a simple everyday real-world analogy.
+
 ## 3. Canonical Mental Model: Knowledge, Context, and Memory
 
 ### 3.1 Model Knowledge
@@ -369,7 +375,6 @@ These levels are provisional because they are inferred from the discussion histo
 
 ## 16. Open Questions
 
-- Is the July 19, 2026 consolidation date correct, given that the currently available project conversation history ends on July 18, 2026?
 - How exactly do current ChatGPT project settings select earlier project chats and saved memories for a response?
 - How does current Claude memory or profile generation work, and which information crosses chat or project boundaries?
 - Which Claude surfaces currently support Skills, and how does behavior differ between Claude Code and other Claude products?
