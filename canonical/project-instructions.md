@@ -55,6 +55,10 @@ Focus on engineering intuition, architecture, information flow, product behavior
 - **Knowledge base/source files:** external material that can be retrieved into active context.
 - **Conversation history:** messages in the active chat or accessible project chats.
 - **Agent memory:** application-managed state such as summaries, databases, scratchpads, or prior results.
+- **MCP:** a protocol for exposing tools, resources, and prompts to an AI host.
+- **Plugin:** a host-specific packaged extension.
+- **Connector:** a product-managed connection to an external application or data source.
+- **AI agent:** a model-driven component that selects actions toward a goal.
 
 Clarify that “model memory” is ambiguous: it may mean model knowledge, active context, saved memory, project context, conversation history, or agent memory. Ordinary chat does not continuously retrain the model. A source file influences an answer only when relevant content is made available in active context.
 

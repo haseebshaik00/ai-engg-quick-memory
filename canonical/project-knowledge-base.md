@@ -206,7 +206,7 @@ Do not ask which tool is universally best. Choose according to the job: continui
 
 ## 8. RAG, Connectors, APIs, Plugins, and MCP
 
-These areas have been introduced but are not yet fully consolidated.
+These areas are being consolidated into distinct architecture layers rather than treated as interchangeable integrations.
 
 ### 8.1 RAG
 
@@ -219,21 +219,50 @@ RAG is therefore a context-assembly pattern, not model retraining.
 ### 8.2 Integration Terms
 
 - An **API** is a programmatic interface for direct requests to a service.
-- A **connector** is usually a product-managed integration with an external data source or application.
-- **MCP** is a protocol-oriented way for AI applications to discover and use external tools, resources, or prompts through a consistent interface.
-- A **plugin** is a packaged extension; its exact structure and capabilities depend on the host product.
+- **MCP** is an open protocol that standardizes how an AI host discovers and uses tools, resources, and prompts exposed by an MCP server.
+- A **plugin** is a host-specific packaged extension. Its manifest, permissions, lifecycle, and capabilities depend on the host product.
+- A **connector** is a product-managed connection to an external application or data source, often for search, retrieval, or actions.
 
-The implementation, authentication, permission, privacy, and security differences between connectors and MCP remain a priority for deeper study.
+| Term | Architectural role | Main purpose | Typical owner |
+| --- | --- | --- | --- |
+| MCP | Communication protocol | Standardize access to tools, resources, and prompts | Protocol ecosystem |
+| Plugin | Packaged host extension | Add capabilities to a specific product | Host or extension developer |
+| Connector | Product integration | Connect a product to external data or actions | Product vendor or integration provider |
+
+A plugin or connector may use MCP internally, but neither label implies MCP. A connector may instead use proprietary APIs or internal integration code. The user-facing name of an integration does not establish its underlying protocol.
+
+When evaluating an integration, inspect its ownership, protocol, authentication, permissions, exposed capabilities, and lifecycle management.
+
+### 8.3 Remote MCP Deployment Model
+
+A custom MCP server is an independently running service that exposes MCP-compatible capabilities. MCP defines the interface, not the hosting platform.
+
+Working deployment flow:
+
+**Capability design → MCP server implementation → backing services → authentication and authorization → remote hosting and reachability → host configuration → discovery and tool-call testing → operational validation**
+
+For a remote AI host to use the server, it generally needs a reachable endpoint, a supported transport, suitable authentication and authorization, and host-side configuration. Runtime, hosting provider, security controls, logging, rate limits, and failure handling remain developer choices.
+
+Exact ChatGPT plan support, transports, authentication methods, and configuration remain time-sensitive questions requiring official documentation.
 
 ## 9. Agents, Loops, and Deterministic Workflows
 
 ### 9.1 Workflow
 
-A workflow follows a controlled sequence of predefined steps.
+A workflow coordinates steps toward an outcome. A deterministic workflow follows a controlled, predefined sequence; a workflow can include agentic behavior when a model makes runtime decisions or adapts through a loop.
 
 ### 9.2 Agent
 
-An agent uses a model to decide what action to take based on a goal, current observations, available tools, prior results, and stopping conditions.
+An AI agent is a concrete software component that uses a model to decide what action to take based on a goal, current observations, available tools, prior results, and stopping conditions.
+
+Related terms:
+
+- **Agentic AI** describes the broader system characteristic of planning, acting, inspecting results, adapting, and continuing with some autonomy.
+- An **agentic framework** is an optional toolkit or runtime for tools, state, loops, handoffs, orchestration, and validation.
+- An **agentic workflow** contains model-driven runtime decisions or adaptive loops.
+- A **deterministic workflow** follows a predefined sequence controlled by explicit rules.
+
+LangChain or another agent framework is not required. An agent can be built directly with a model API, application code, state management, and tool contracts. A framework should be introduced only when it materially simplifies orchestration.
 
 ### 9.3 Agent Loop
 
@@ -242,6 +271,15 @@ A common loop is:
 **Observe → plan/reason → select action → use tool → inspect result → repeat or stop**
 
 A multi-step workflow is not automatically an agent. For predictable and auditable work, a deterministic workflow may be safer and easier to validate than open-ended agent autonomy.
+
+n8n is a workflow-automation platform, not inherently an agent or agentic AI. A particular n8n workflow becomes agentic only when it includes model-driven decisions, dynamic tool or path selection, iterative execution, or adaptive branching. Predetermined branching remains a workflow.
+
+Decision flow:
+
+1. If the task path is fixed and predictable, use a deterministic workflow.
+2. If the system must choose among tools or paths at runtime, consider an agent.
+3. If it must inspect results and retry or revise, define an explicit loop and stopping condition.
+4. If permissions, state, outputs, and validation cannot be constrained, reduce autonomy.
 
 ### 9.4 Reliable Agent Contract
 
@@ -351,8 +389,16 @@ Existing project chats are source material, not automatically a clean knowledge 
 - **Correction:** Temperature, top-p, penalties, output limits, response formats, and tool choice are not feed-forward weights and do not all perform the same function.
 - **Correction:** A project and a skill are not interchangeable: a project holds evolving context; a skill defines reusable behavior.
 - **Correction:** Obsidian Base membership does not itself create graph links.
+- **Correction:** MCP, plugins, and connectors describe different architectural layers and are not interchangeable.
+- **Correction:** A plugin, app, or connector should not be assumed to use MCP underneath.
+- **Correction:** MCP is an interoperability protocol, not an agent.
+- **Correction:** A multi-step n8n automation is not automatically agentic; predefined branching remains a deterministic workflow.
+- **Correction:** Agents do not require LangChain or another agent framework.
+- **Correction:** Building an agent does not inherently require OpenAI or Anthropic credits; it may use another hosted provider, a free tier, an existing product capability, or a local/open model. Production API usage commonly has separate costs.
 - **Decision:** Use a task-fit comparison instead of declaring ChatGPT or Claude universally better.
 - **Decision:** Prefer deterministic, range-restricted workflows for auditable accounting work; use agents only where model judgment is needed.
+- **Decision:** Add an agent loop only when runtime judgment, adaptation, or dynamic tool selection creates real value.
+- **Decision:** Evaluate integrations by ownership, protocol, authentication, permissions, exposed capabilities, and lifecycle rather than by user-facing label.
 - **Decision:** Maintain two canonical project documents and keep temporary logs/templates auxiliary.
 
 ## 15. Confidence Snapshot
@@ -368,9 +414,13 @@ These levels are provisional because they are inferred from the discussion histo
 | Saved memory and project context | Medium | Conceptual categories are clear; product-specific selection behavior remains unresolved. |
 | ChatGPT/Claude/Projects/Skills | Medium | Primary distinctions are forming; current feature boundaries require verification. |
 | Generation controls and structured output | Medium | Categories have been discussed; API-specific support and practical usage need consolidation. |
-| Agents vs. workflows | Medium | Core distinction is understood; implementation reliability remains an active exercise. |
+| Agents vs. workflows | Medium–High | Runtime decision-making, actions, loops, and autonomy are now distinguished from predetermined workflows. |
+| Agentic AI terminology | Medium | Agent, agentic AI, agentic framework, agentic workflow, and deterministic workflow are now separated. |
+| Agent implementation choices | Low–Medium | Frameworks are understood as optional, but practical framework selection remains open. |
 | RAG and vectorless RAG | Low–Medium | Introduced, but selection criteria and architectures need deeper study. |
-| Connectors, plugins, APIs, and MCP | Low–Medium | Basic terms are present; implementation and security differences remain open. |
+| MCP basic purpose | Medium | MCP is now understood as a protocol rather than a plugin or connector product. |
+| MCP vs. plugins vs. connectors | Medium | The layers are clearer; current product implementations still require verification. |
+| Remote MCP deployment | Low–Medium | The high-level deployment model is understood; exact ChatGPT configuration remains unresolved. |
 | No-code multi-agent Sheets workflow | Medium | A detailed design exists, but tool contracts and safe writes caused implementation issues. |
 
 ## 16. Open Questions
@@ -378,7 +428,14 @@ These levels are provisional because they are inferred from the discussion histo
 - How exactly do current ChatGPT project settings select earlier project chats and saved memories for a response?
 - How does current Claude memory or profile generation work, and which information crosses chat or project boundaries?
 - Which Claude surfaces currently support Skills, and how does behavior differ between Claude Code and other Claude products?
-- What are the implementation, permission, authentication, and security differences among connectors, plugins, APIs, and MCP?
+- Which current ChatGPT plans and workspace types support custom remote MCP servers?
+- Which transports and authentication mechanisms does ChatGPT currently support for remote MCP connections?
+- Which officially maintained MCP servers are suitable for production use?
+- What is the current relationship among ChatGPT apps, connectors, legacy plugins, and MCP-backed integrations?
+- When should a developer choose MCP instead of a direct function or tool integration?
+- Which agentic framework should be learned first for practical software-engineering use?
+- At what point does an n8n workflow become sufficiently adaptive to classify as an agent?
+- How do product subscriptions, API billing, free tiers, and local models differ when deploying an agent?
 - When should lexical, structured, graph-based, or model-guided “vectorless” retrieval be preferred over vector retrieval?
 - How should growing source files be updated without duplicating or contradicting canonical knowledge?
 - What is the best supported way to consolidate older chats into project knowledge without assuming every chat is automatically retrieved?
@@ -393,7 +450,12 @@ These levels are provisional because they are inferred from the discussion histo
 4. Complete the practical LLM inference model, including context limits and token generation.
 5. Practice structured outputs, JSON schemas, function calling, and tool contracts.
 6. Learn RAG architecture and compare vector, lexical, structured, graph, and vectorless retrieval.
-7. Study connectors, plugins, APIs, and MCP with permissions and security boundaries.
-8. Distinguish deterministic workflows from agents using concrete failure cases.
-9. Repair and validate the Google Sheets workflow with small read-after-write tests and protected ranges.
-10. Run a weekly quiz to replace provisional confidence estimates with evidence-based levels.
+7. Consolidate MCP, plugins, connectors, apps, and direct APIs into one architecture diagram and decision table.
+8. Verify current ChatGPT MCP support, plan requirements, transports, configuration, and authentication using official documentation.
+9. Build or inspect a small MCP server to practice discovery, schemas, tool calls, and error handling.
+10. Consolidate agent, agentic AI, agentic workflow, agent loop, and agentic framework terminology.
+11. Compare direct agent implementation with LangChain, LangGraph, and host-provided agent SDKs.
+12. Classify n8n examples as deterministic, AI-assisted, or genuinely agentic.
+13. Study deployment cost models across product subscriptions, hosted APIs, free tiers, and local models.
+14. Repair and validate the Google Sheets workflow with small read-after-write tests and protected ranges.
+15. Run a weekly quiz to replace provisional confidence estimates with evidence-based levels.
